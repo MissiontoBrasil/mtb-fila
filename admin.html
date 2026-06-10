@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin — Mission to Brasil</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0e0e0e;
+  --surface: #1a1a1a;
+  --surface2: #242424;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.15);
+  --gold: #C9A84C;
+  --gold-dim: rgba(201,168,76,0.12);
+  --text: #f0f0f0;
+  --text2: #999;
+  --text3: #555;
+  --green: #4caf7d;
+  --green-bg: rgba(76,175,125,0.12);
+  --red: #e05050;
+  --red-bg: rgba(224,80,80,0.1);
+  --radius: 10px;
+  --radius-lg: 14px;
+}
+body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
+
+/* LOGIN */
+.login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+.login-box { background: var(--surface); border: 0.5px solid var(--border2); border-radius: var(--radius-lg); padding: 2rem; width: 100%; max-width: 340px; }
+.login-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 1.75rem; }
+.logo-icon { width: 32px; height: 32px; background: var(--gold); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+.logo-icon svg { width: 18px; height: 18px; fill: #0e0e0e; }
+.logo-name { font-size: 15px; font-weight: 700; letter-spacing: 0.03em; }
+.logo-name span { color: var(--gold); }
+.login-box h2 { font-size: 16px; font-weight: 600; margin-bottom: 1.25rem; color: var(--text2); }
+.field { margin-bottom: 12px; }
+.field label { font-size: 11px; font-weight: 600; color: var(--text3); display: block; margin-bottom: 5px; letter-spacing: 0.06em; text-transform: uppercase; }
+.field input { width: 100%; padding: 10px 12px; border-radius: var(--radius); border: 0.5px solid var(--border2); background: var(--surface2); color: var(--text); font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.15s; }
+.field input:focus { border-color: var(--gold); }
+.login-err { font-size: 13px; color: var(--red); margin-bottom: 10px; display: none; }
+.btn-gold { width: 100%; padding: 11px; border-radius: var(--radius); border: none; background: var(--gold); color: #0e0e0e; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 4px; transition: opacity 0.15s; }
+.btn-gold:hover { opacity: 0.85; }
+
+/* TOPBAR */
+.topbar { background: var(--surface); border-bottom: 0.5px solid var(--border); padding: 0 1.5rem; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+.topbar-brand { display: flex; align-items: center; gap: 10px; }
+.topbar-logo { width: 28px; height: 28px; border-radius: 6px; background: var(--gold); display: flex; align-items: center; justify-content: center; }
+.topbar-logo svg { width: 16px; height: 16px; fill: #0e0e0e; }
+.topbar-name { font-size: 14px; font-weight: 700; }
+.topbar-name span { color: var(--gold); }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.badge-admin { font-size: 11px; padding: 3px 10px; border-radius: 20px; background: var(--gold-dim); color: var(--gold); border: 0.5px solid rgba(201,168,76,0.3); font-weight: 600; }
+.btn-logout { font-size: 13px; color: var(--text3); background: transparent; border: 0.5px solid var(--border); border-radius: 8px; padding: 6px 12px; cursor: pointer; transition: color 0.15s; }
+.btn-logout:hover { color: var(--text); border-color: var(--border2); }
+
+/* MAIN */
+.container { max-width: 780px; margin: 0 auto; padding: 2rem 1.25rem; }
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 10px; }
+.section-title { font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); }
+.add-btn { display: flex; align-items: center; gap: 6px; padding: 9px 18px; background: var(--gold); color: #0e0e0e; font-size: 13px; font-weight: 700; border: none; border-radius: var(--radius); cursor: pointer; transition: opacity 0.15s; }
+.add-btn:hover { opacity: 0.85; }
+.add-btn svg { width: 14px; height: 14px; }
+
+.list { display: flex; flex-direction: column; gap: 12px; }
+.empty-state { text-align: center; padding: 4rem 1rem; color: var(--text3); }
+.empty-state .icon { font-size: 40px; margin-bottom: 12px; opacity: 0.4; }
+.empty-state p { font-size: 14px; }
+
+/* CARD */
+.card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 16px; transition: border-color 0.2s; }
+.card:hover { border-color: var(--border2); }
+.card-top { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 14px; }
+.card-num { font-size: 12px; font-weight: 700; color: var(--gold); min-width: 24px; padding-top: 2px; opacity: 0.7; }
+.card-thumb { width: 60px; height: 60px; border-radius: var(--radius); object-fit: cover; border: 0.5px solid var(--border2); flex-shrink: 0; }
+.card-thumb-placeholder { width: 60px; height: 60px; border-radius: var(--radius); background: var(--surface2); border: 0.5px dashed var(--border2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
+.card-thumb-placeholder:hover { background: var(--gold-dim); border-color: var(--gold); }
+.card-thumb-placeholder svg { width: 22px; height: 22px; stroke: var(--text3); }
+.card-info { flex: 1; min-width: 0; }
+.card-name { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
+.card-client { font-size: 13px; color: var(--text2); }
+.card-actions { display: flex; gap: 6px; }
+.icon-btn { width: 30px; height: 30px; border-radius: 8px; border: 0.5px solid var(--border); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text3); transition: background 0.15s, color 0.15s, border-color 0.15s; }
+.icon-btn svg { width: 14px; height: 14px; stroke: currentColor; }
+.icon-btn:hover { background: var(--surface2); color: var(--text); border-color: var(--border2); }
+.icon-btn.danger:hover { background: var(--red-bg); color: var(--red); border-color: rgba(224,80,80,0.4); }
+
+/* STEPS GRID */
+.steps-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; }
+.step-item { display: flex; align-items: center; gap: 8px; background: var(--surface2); border-radius: 8px; padding: 8px 10px; cursor: pointer; border: 0.5px solid var(--border); transition: border-color 0.15s, background 0.15s; user-select: none; }
+.step-item:hover { border-color: var(--border2); }
+.step-item.done { background: var(--green-bg); border-color: rgba(76,175,125,0.3); }
+.step-check { width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid var(--text3); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.15s, border-color 0.15s; }
+.step-item.done .step-check { background: var(--green); border-color: var(--green); }
+.step-check svg { width: 10px; height: 10px; stroke: #fff; display: none; }
+.step-item.done .step-check svg { display: block; }
+.step-label { font-size: 12px; color: var(--text2); line-height: 1.3; transition: color 0.15s; }
+.step-item.done .step-label { color: var(--green); }
+
+/* MODAL */
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 1rem; backdrop-filter: blur(4px); }
+.modal { background: var(--surface); border: 0.5px solid var(--border2); border-radius: var(--radius-lg); padding: 1.5rem; width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto; }
+.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+.modal-header h3 { font-size: 16px; font-weight: 600; }
+.modal-close { width: 28px; height: 28px; border-radius: 6px; border: 0.5px solid var(--border); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text3); }
+.modal-close:hover { background: var(--surface2); color: var(--text); }
+.modal-close svg { width: 14px; height: 14px; stroke: currentColor; }
+.modal .field { margin-bottom: 14px; }
+.modal .field label { font-size: 11px; font-weight: 600; color: var(--text3); display: block; margin-bottom: 6px; letter-spacing: 0.06em; text-transform: uppercase; }
+.modal .field input, .modal .field textarea { width: 100%; padding: 9px 12px; border-radius: var(--radius); border: 0.5px solid var(--border2); background: var(--surface2); color: var(--text); font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.15s; }
+.modal .field input:focus, .modal .field textarea:focus { border-color: var(--gold); }
+.modal .field textarea { resize: vertical; min-height: 70px; }
+.img-area { display: flex; align-items: center; gap: 12px; }
+.img-preview-wrap { position: relative; }
+.img-preview-wrap img { width: 64px; height: 64px; border-radius: var(--radius); object-fit: cover; border: 0.5px solid var(--border2); display: block; }
+.img-remove { position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; border-radius: 50%; background: var(--red); color: #fff; border: none; cursor: pointer; font-size: 11px; display: flex; align-items: center; justify-content: center; }
+.img-upload-btn { display: flex; align-items: center; gap: 6px; padding: 9px 14px; border-radius: var(--radius); border: 0.5px dashed var(--border2); background: var(--surface2); color: var(--text2); font-size: 13px; cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s; }
+.img-upload-btn:hover { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); }
+.img-upload-btn svg { width: 16px; height: 16px; stroke: currentColor; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 1.25rem; padding-top: 1.25rem; border-top: 0.5px solid var(--border); }
+.btn-cancel { padding: 9px 18px; border-radius: var(--radius); border: 0.5px solid var(--border2); background: transparent; color: var(--text2); font-size: 14px; cursor: pointer; }
+.btn-cancel:hover { color: var(--text); }
+.btn-save { padding: 9px 18px; border-radius: var(--radius); border: none; background: var(--gold); color: #0e0e0e; font-size: 14px; font-weight: 700; cursor: pointer; }
+.btn-save:hover { opacity: 0.85; }
+
+.toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--surface); border: 0.5px solid var(--border2); color: var(--text); font-size: 13px; padding: 10px 20px; border-radius: 20px; z-index: 200; opacity: 0; transition: opacity 0.2s, transform 0.2s; pointer-events: none; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+.spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--border2); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-wrap { display: flex; align-items: center; justify-content: center; padding: 4rem; gap: 12px; color: var(--text3); font-size: 14px; }
+
+@media (max-width: 500px) {
+  .steps-grid { grid-template-columns: 1fr 1fr; }
+  .card-actions { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="logo-icon"><svg viewBox="0 0 16 16"><path d="M8 1L2 5v8h4V9h4v4h4V5L8 1z"/></svg></div>
+      <span class="logo-name">Mission <span>to Brasil</span></span>
+    </div>
+    <h2>Acesso admin</h2>
+    <div class="field">
+      <label>Senha</label>
+      <input type="password" id="pwd-input" placeholder="Digite a senha" onkeydown="if(event.key==='Enter')doLogin()" />
+    </div>
+    <p class="login-err" id="login-err">Senha incorreta.</p>
+    <button class="btn-gold" onclick="doLogin()">Entrar</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-screen" style="display:none">
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="topbar-logo"><svg viewBox="0 0 16 16"><path d="M8 1L2 5v8h4V9h4v4h4V5L8 1z"/></svg></div>
+      <span class="topbar-name">Mission <span>to Brasil</span> <span style="color:var(--text3);font-weight:400">/ Admin</span></span>
+    </div>
+    <div class="topbar-right">
+      <span class="badge-admin">Admin</span>
+      <button class="btn-logout" onclick="doLogout()">Sair</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="section-header">
+      <span class="section-title">Fila de trabalhos</span>
+      <button class="add-btn" onclick="openModal()">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/></svg>
+        Novo trabalho
+      </button>
+    </div>
+    <div id="list-wrap">
+      <div class="loading-wrap"><div class="spinner"></div> Carregando...</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal" style="display:none" onclick="bgClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">Novo trabalho</h3>
+      <button class="modal-close" onclick="closeModal()">
+        <svg viewBox="0 0 16 16"><line x1="3" y1="3" x2="13" y2="13"/><line x1="13" y1="3" x2="3" y2="13"/></svg>
+      </button>
+    </div>
+    <div class="field">
+      <label>Nome do cliente</label>
+      <input type="text" id="f-client" placeholder="Ex: João Silva" />
+    </div>
+    <div class="field">
+      <label>Modelo do relógio</label>
+      <input type="text" id="f-model" placeholder="Ex: Seiko SKX007" />
+    </div>
+    <div class="field">
+      <label>Foto do relógio</label>
+      <div class="img-area">
+        <div class="img-preview-wrap" id="preview-wrap" style="display:none">
+          <img id="f-preview" src="" alt="preview" />
+          <button class="img-remove" onclick="removeImg()">✕</button>
+        </div>
+        <label class="img-upload-btn">
+          <svg viewBox="0 0 16 16" fill="none" stroke-width="1.5"><rect x="1" y="3" width="14" height="11" rx="2"/><circle cx="5.5" cy="7.5" r="1.5"/><polyline points="1 11 5 8 8 11 11 9 15 12"/></svg>
+          Escolher foto
+          <input type="file" accept="image/*" id="f-img" style="display:none" onchange="previewImg(event)" />
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-save" onclick="saveJob()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA4_BS4q55yFiRKHNH8Q-10EsnvHvAcuvU",
+  authDomain: "mission-to-brasil-21836.firebaseapp.com",
+  projectId: "mission-to-brasil-21836",
+  storageBucket: "mission-to-brasil-21836.firebasestorage.app",
+  messagingSenderId: "671245484767",
+  appId: "1:671245484767:web:7eb1c161938ff8b8d0df6a"
+};
+
+const ADMIN_PASSWORD = "MissionKravitz";
+
+const STEPS = [
+  { key: "pecaEstoque",    label: "Peça em estoque" },
+  { key: "pecasCompradas", label: "Peças compradas" },
+  { key: "pecasEnviadas",  label: "Peças enviadas" },
+  { key: "pecasBrasil",    label: "Peças no Brasil" },
+  { key: "pecasLocal",     label: "Peças no local de montagem" },
+  { key: "relogioMontado", label: "Relógio montado" },
+  { key: "relogioEnviado", label: "Relógio enviado" },
+];
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let jobs = [];
+let editId = null;
+let imgData = null;
+let unsubscribe = null;
+
+// LOGIN
+const SESS_KEY = 'mtb_admin_ok';
+window.doLogin = function() {
+  const val = document.getElementById('pwd-input').value;
+  if (val === ADMIN_PASSWORD) {
+    sessionStorage.setItem(SESS_KEY, '1');
+    showApp();
+  } else {
+    document.getElementById('login-err').style.display = 'block';
+    document.getElementById('pwd-input').value = '';
+    document.getElementById('pwd-input').focus();
+  }
+};
+window.doLogout = function() {
+  sessionStorage.removeItem(SESS_KEY);
+  if (unsubscribe) unsubscribe();
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+};
+
+function showApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+  startListener();
+}
+
+if (sessionStorage.getItem(SESS_KEY)) showApp();
+
+function startListener() {
+  const q = query(collection(db, "jobs"), orderBy("createdAt", "asc"));
+  unsubscribe = onSnapshot(q, snap => {
+    jobs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderList();
+  });
+}
+
+function renderList() {
+  const wrap = document.getElementById('list-wrap');
+  if (jobs.length === 0) {
+    wrap.innerHTML = '<div class="empty-state"><div class="icon">⌚</div><p>Nenhum trabalho ainda.<br>Clique em "Novo trabalho" para começar.</p></div>';
+    return;
+  }
+  wrap.innerHTML = '<div class="list">' + jobs.map((j, i) => `
+    <div class="card">
+      <div class="card-top">
+        <span class="card-num">#${i+1}</span>
+        ${j.imgUrl
+          ? `<img class="card-thumb" src="${j.imgUrl}" alt="foto" />`
+          : `<div class="card-thumb-placeholder" onclick="addImgCard('${j.id}')" title="Adicionar foto">
+               <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><rect x="2" y="5" width="20" height="16" rx="3"/><circle cx="8" cy="11" r="2"/><polyline points="2 17 8 12 12 16 16 13 22 18"/></svg>
+             </div>`
+        }
+        <div class="card-info">
+          <div class="card-name">${esc(j.model || '')}</div>
+          <div class="card-client">${esc(j.client || '')}</div>
+        </div>
+        <div class="card-actions">
+          <button class="icon-btn" onclick="openModal('${j.id}')" title="Editar">
+            <svg viewBox="0 0 16 16" fill="none" stroke-width="1.8"><path d="M11 2l3 3-8 8H3v-3l8-8z"/></svg>
+          </button>
+          <button class="icon-btn danger" onclick="deleteJob('${j.id}')" title="Excluir">
+            <svg viewBox="0 0 16 16" fill="none" stroke-width="1.8"><polyline points="2 4 14 4"/><path d="M6 4V2h4v2"/><path d="M3 4l1 10h8l1-10"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="steps-grid">
+        ${STEPS.map(s => `
+          <div class="step-item ${j.steps && j.steps[s.key] ? 'done' : ''}" onclick="toggleStep('${j.id}', '${s.key}')">
+            <div class="step-check">
+              <svg viewBox="0 0 10 10" fill="none" stroke-width="2"><polyline points="1.5 5 4 7.5 8.5 2.5"/></svg>
+            </div>
+            <span class="step-label">${s.label}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('') + '</div>';
+}
+
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+window.toggleStep = async function(id, key) {
+  const j = jobs.find(x => x.id === id);
+  if (!j) return;
+  const steps = j.steps || {};
+  steps[key] = !steps[key];
+  await updateDoc(doc(db, "jobs", id), { steps });
+};
+
+window.openModal = function(id = null) {
+  editId = id; imgData = null;
+  document.getElementById('modal-title').textContent = id ? 'Editar trabalho' : 'Novo trabalho';
+  if (id) {
+    const j = jobs.find(x => x.id === id);
+    document.getElementById('f-client').value = j.client || '';
+    document.getElementById('f-model').value = j.model || '';
+    if (j.imgUrl) {
+      imgData = j.imgUrl;
+      document.getElementById('f-preview').src = imgData;
+      document.getElementById('preview-wrap').style.display = 'block';
+    } else {
+      document.getElementById('preview-wrap').style.display = 'none';
+    }
+  } else {
+    document.getElementById('f-client').value = '';
+    document.getElementById('f-model').value = '';
+    document.getElementById('preview-wrap').style.display = 'none';
+  }
+  document.getElementById('modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('f-client').focus(), 60);
+};
+
+window.closeModal = function() { document.getElementById('modal').style.display = 'none'; editId = null; imgData = null; };
+window.bgClick = function(e) { if (e.target === document.getElementById('modal')) closeModal(); };
+
+window.previewImg = function(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    imgData = ev.target.result;
+    document.getElementById('f-preview').src = imgData;
+    document.getElementById('preview-wrap').style.display = 'block';
+  };
+  r.readAsDataURL(file);
+};
+
+window.removeImg = function() {
+  imgData = null;
+  document.getElementById('preview-wrap').style.display = 'none';
+  document.getElementById('f-img').value = '';
+};
+
+function compressImg(dataUrl) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 600;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+        else { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', 0.7));
+    };
+    img.src = dataUrl;
+  });
+}
+
+window.saveJob = async function() {
+  const client = document.getElementById('f-client').value.trim();
+  const model = document.getElementById('f-model').value.trim();
+  if (!client && !model) { document.getElementById('f-client').focus(); return; }
+
+  const btn = document.querySelector('.btn-save');
+  btn.textContent = 'Salvando...'; btn.disabled = true;
+
+  try {
+    let imgUrl = null;
+    if (imgData && imgData.startsWith('data:')) {
+      imgUrl = await compressImg(imgData);
+    } else if (imgData) {
+      imgUrl = imgData;
+    }
+
+    if (editId) {
+      const update = { client, model };
+      if (imgUrl !== null) update.imgUrl = imgUrl;
+      await updateDoc(doc(db, "jobs", editId), update);
+      showToast('Trabalho atualizado ✓');
+    } else {
+      await addDoc(collection(db, "jobs"), {
+        client, model,
+        imgUrl: imgUrl || null,
+        steps: {},
+        createdAt: serverTimestamp()
+      });
+      showToast('Trabalho adicionado ✓');
+    }
+    closeModal();
+  } catch(err) {
+    showToast('Erro ao salvar: ' + err.message);
+  }
+  btn.textContent = 'Salvar'; btn.disabled = false;
+};
+
+window.deleteJob = async function(id) {
+  const j = jobs.find(x => x.id === id);
+  if (!confirm('Excluir "' + (j.model || j.client) + '"?')) return;
+  await deleteDoc(doc(db, "jobs", id));
+  showToast('Removido');
+};
+
+window.addImgCard = function(id) {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'image/*';
+  inp.onchange = async e => {
+    const file = e.target.files[0]; if (!file) return;
+    const r = new FileReader();
+    r.onload = async ev => {
+      try {
+        const compressed = await compressImg(ev.target.result);
+        await updateDoc(doc(db, "jobs", id), { imgUrl: compressed });
+        showToast('Foto adicionada ✓');
+      } catch(err) { showToast('Erro ao salvar foto'); }
+    };
+    r.readAsDataURL(file);
+  };
+  inp.click();
+};
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+</script>
+</body>
+</html>

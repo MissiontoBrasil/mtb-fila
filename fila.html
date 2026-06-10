@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Acompanhe seu relógio — Mission to Brasil</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0e0e0e;
+  --surface: #1a1a1a;
+  --surface2: #242424;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.15);
+  --gold: #C9A84C;
+  --gold-dim: rgba(201,168,76,0.10);
+  --text: #f0f0f0;
+  --text2: #999;
+  --text3: #555;
+  --green: #4caf7d;
+  --green-bg: rgba(76,175,125,0.10);
+  --radius: 10px;
+  --radius-lg: 14px;
+}
+body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
+
+/* TOPBAR */
+.topbar { background: var(--surface); border-bottom: 0.5px solid var(--border); padding: 0 1.5rem; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+.topbar-brand { display: flex; align-items: center; gap: 10px; }
+.topbar-logo { width: 28px; height: 28px; border-radius: 6px; background: var(--gold); display: flex; align-items: center; justify-content: center; }
+.topbar-logo svg { width: 16px; height: 16px; fill: #0e0e0e; }
+.topbar-name { font-size: 14px; font-weight: 700; }
+.topbar-name span { color: var(--gold); }
+.topbar-ig { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text3); text-decoration: none; border: 0.5px solid var(--border); border-radius: 8px; padding: 5px 10px; transition: color 0.15s, border-color 0.15s; }
+.topbar-ig:hover { color: var(--gold); border-color: rgba(201,168,76,0.4); }
+.topbar-ig svg { width: 14px; height: 14px; stroke: currentColor; }
+
+/* HERO */
+.hero { text-align: center; padding: 3rem 1.5rem 2rem; }
+.hero-label { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+.hero h1 { font-size: 26px; font-weight: 700; margin-bottom: 8px; line-height: 1.2; }
+.hero p { font-size: 14px; color: var(--text2); line-height: 1.6; max-width: 380px; margin: 0 auto; }
+
+/* CONTAINER */
+.container { max-width: 720px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+
+/* STATS */
+.stats { display: flex; gap: 10px; justify-content: center; margin-bottom: 2rem; flex-wrap: wrap; }
+.stat { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 10px 20px; text-align: center; }
+.stat-val { font-size: 22px; font-weight: 700; color: var(--gold); }
+.stat-label { font-size: 11px; color: var(--text3); margin-top: 2px; letter-spacing: 0.04em; text-transform: uppercase; }
+
+/* CARDS */
+.list { display: flex; flex-direction: column; gap: 14px; }
+
+.card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+.card-header { display: flex; gap: 14px; align-items: center; padding: 16px 16px 0; }
+.card-num { font-size: 12px; font-weight: 700; color: var(--gold); opacity: 0.6; min-width: 24px; }
+.card-thumb { width: 56px; height: 56px; border-radius: var(--radius); object-fit: cover; border: 0.5px solid var(--border2); flex-shrink: 0; }
+.card-thumb-empty { width: 56px; height: 56px; border-radius: var(--radius); background: var(--surface2); border: 0.5px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.card-thumb-empty svg { width: 22px; height: 22px; stroke: var(--text3); }
+.card-info { flex: 1; min-width: 0; }
+.card-model { font-size: 15px; font-weight: 600; }
+.card-client { font-size: 13px; color: var(--text2); margin-top: 2px; }
+.card-progress { padding: 4px 16px 0 16px; }
+.progress-bar-wrap { height: 3px; background: var(--surface2); border-radius: 3px; margin: 10px 0 4px; }
+.progress-bar-fill { height: 100%; border-radius: 3px; background: var(--gold); transition: width 0.4s ease; }
+.progress-label { font-size: 11px; color: var(--text3); text-align: right; margin-bottom: 12px; }
+
+/* STEPS */
+.steps-list { border-top: 0.5px solid var(--border); padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px; }
+.step-row { display: flex; align-items: center; gap: 10px; }
+.step-icon { width: 22px; height: 22px; border-radius: 6px; border: 1.5px solid var(--text3); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.2s, border-color 0.2s; }
+.step-icon.done { background: var(--green); border-color: var(--green); }
+.step-icon svg { width: 11px; height: 11px; stroke: #fff; opacity: 0; transition: opacity 0.2s; }
+.step-icon.done svg { opacity: 1; }
+.step-text { font-size: 13px; color: var(--text3); transition: color 0.2s; }
+.step-text.done { color: var(--text); }
+.step-connector { width: 1.5px; height: 8px; background: var(--border2); margin-left: 10px; }
+.step-connector.done { background: var(--green); opacity: 0.4; }
+
+/* DONE BADGE */
+.done-banner { margin: 8px 16px 0; padding: 8px 14px; background: var(--green-bg); border: 0.5px solid rgba(76,175,125,0.3); border-radius: var(--radius); display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--green); font-weight: 600; }
+.done-banner svg { width: 16px; height: 16px; stroke: var(--green); }
+
+.empty-state { text-align: center; padding: 4rem 1rem; color: var(--text3); }
+.empty-state .icon { font-size: 40px; margin-bottom: 12px; opacity: 0.3; }
+.empty-state p { font-size: 14px; }
+
+.loading-wrap { display: flex; align-items: center; justify-content: center; padding: 4rem; gap: 12px; color: var(--text3); font-size: 14px; }
+.spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--border2); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* FOOTER */
+.footer { text-align: center; padding: 2rem 1rem; border-top: 0.5px solid var(--border); color: var(--text3); font-size: 12px; }
+.footer a { color: var(--gold); text-decoration: none; }
+
+@media (max-width: 480px) {
+  .hero h1 { font-size: 22px; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-logo"><svg viewBox="0 0 16 16"><path d="M8 1L2 5v8h4V9h4v4h4V5L8 1z"/></svg></div>
+    <span class="topbar-name">Mission <span>to Brasil</span></span>
+  </div>
+  <a class="topbar-ig" href="https://instagram.com/missiontobrasil" target="_blank">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+    @missiontobrasil
+  </a>
+</div>
+
+<div class="hero">
+  <p class="hero-label">Acompanhamento de pedidos</p>
+  <h1>Seu relógio está sendo<br>preparado com cuidado</h1>
+  <p>Confira abaixo o status do seu pedido em tempo real.</p>
+</div>
+
+<div class="container">
+  <div class="stats">
+    <div class="stat"><div class="stat-val" id="stat-total">—</div><div class="stat-label">Na fila</div></div>
+    <div class="stat"><div class="stat-val" id="stat-done">—</div><div class="stat-label">Concluídos</div></div>
+  </div>
+  <div id="list-wrap">
+    <div class="loading-wrap"><div class="spinner"></div> Carregando...</div>
+  </div>
+</div>
+
+<div class="footer">
+  Dúvidas? Fale pelo Instagram <a href="https://instagram.com/missiontobrasil" target="_blank">@missiontobrasil</a>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA4_BS4q55yFiRKHNH8Q-10EsnvHvAcuvU",
+  authDomain: "mission-to-brasil-21836.firebaseapp.com",
+  projectId: "mission-to-brasil-21836",
+  storageBucket: "mission-to-brasil-21836.firebasestorage.app",
+  messagingSenderId: "671245484767",
+  appId: "1:671245484767:web:7eb1c161938ff8b8d0df6a"
+};
+
+const STEPS = [
+  { key: "pecaEstoque",    label: "Peça em estoque" },
+  { key: "pecasCompradas", label: "Peças compradas" },
+  { key: "pecasEnviadas",  label: "Peças enviadas" },
+  { key: "pecasBrasil",    label: "Peças no Brasil" },
+  { key: "pecasLocal",     label: "Peças no local de montagem" },
+  { key: "relogioMontado", label: "Relógio montado" },
+  { key: "relogioEnviado", label: "Relógio enviado" },
+];
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const q = query(collection(db, "jobs"), orderBy("createdAt", "asc"));
+onSnapshot(q, snap => {
+  const jobs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const done = jobs.filter(j => j.steps && j.steps.relogioEnviado);
+  document.getElementById('stat-total').textContent = jobs.length;
+  document.getElementById('stat-done').textContent = done.length;
+  renderList(jobs);
+});
+
+function renderList(jobs) {
+  const wrap = document.getElementById('list-wrap');
+  if (jobs.length === 0) {
+    wrap.innerHTML = '<div class="empty-state"><div class="icon">⌚</div><p>Nenhum pedido na fila no momento.</p></div>';
+    return;
+  }
+  wrap.innerHTML = '<div class="list">' + jobs.map((j, i) => {
+    const steps = j.steps || {};
+    const doneCount = STEPS.filter(s => steps[s.key]).length;
+    const pct = Math.round((doneCount / STEPS.length) * 100);
+    const allDone = doneCount === STEPS.length;
+
+    return `
+    <div class="card">
+      <div class="card-header">
+        <span class="card-num">#${i+1}</span>
+        ${j.imgUrl
+          ? `<img class="card-thumb" src="${j.imgUrl}" alt="foto do relógio" />`
+          : `<div class="card-thumb-empty"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><line x1="12" y1="7" x2="12" y2="12"/><line x1="12" y1="12" x2="15" y2="14"/></svg></div>`
+        }
+        <div class="card-info">
+          <div class="card-model">${esc(j.model || '—')}</div>
+          <div class="card-client">${esc(j.client || '')}</div>
+        </div>
+      </div>
+
+      ${allDone ? `
+        <div class="done-banner">
+          <svg viewBox="0 0 16 16" fill="none" stroke-width="2"><polyline points="3 8 6.5 12 13 4"/></svg>
+          Relógio enviado!
+        </div>
+      ` : ''}
+
+      <div class="card-progress">
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" style="width:${pct}%"></div>
+        </div>
+        <div class="progress-label">${doneCount} de ${STEPS.length} etapas</div>
+      </div>
+
+      <div class="steps-list">
+        ${STEPS.map((s, si) => `
+          ${si > 0 ? `<div class="step-connector ${steps[STEPS[si-1].key] ? 'done' : ''}"></div>` : ''}
+          <div class="step-row">
+            <div class="step-icon ${steps[s.key] ? 'done' : ''}">
+              <svg viewBox="0 0 11 11" fill="none" stroke-width="2"><polyline points="1.5 5.5 4 8 9.5 2.5"/></svg>
+            </div>
+            <span class="step-text ${steps[s.key] ? 'done' : ''}">${s.label}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>
