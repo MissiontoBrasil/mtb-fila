@@ -91,6 +91,18 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--border2); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* SECTION DIVIDER */
+.section-divider { display: flex; align-items: center; gap: 12px; margin: 2.5rem 0 1.25rem; }
+.section-divider-label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; }
+.section-divider-label.active { color: var(--gold); }
+.section-divider-label.done { color: var(--green); }
+.section-divider hr { flex: 1; border: none; border-top: 0.5px solid var(--border); }
+.section-divider-count { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
+.section-divider-count.active { background: var(--gold-dim); color: var(--gold); border: 0.5px solid rgba(201,168,76,0.3); }
+.section-divider-count.done { background: var(--green-bg); color: var(--green); border: 0.5px solid rgba(76,175,125,0.3); }
+.card.concluded { opacity: 0.5; }
+.card.concluded:hover { opacity: 0.7; transition: opacity 0.2s; }
+
 /* FOOTER */
 .footer { text-align: center; padding: 2rem 1rem; border-top: 0.5px solid var(--border); color: var(--text3); font-size: 12px; }
 .footer a { color: var(--gold); text-decoration: none; }
@@ -174,53 +186,78 @@ function renderList(jobs) {
     wrap.innerHTML = '<div class="empty-state"><div class="icon">⌚</div><p>Nenhum pedido na fila no momento.</p></div>';
     return;
   }
-  wrap.innerHTML = '<div class="list">' + jobs.map((j, i) => {
-    const steps = j.steps || {};
-    const doneCount = STEPS.filter(s => steps[s.key]).length;
-    const pct = Math.round((doneCount / STEPS.length) * 100);
-    const allDone = doneCount === STEPS.length;
 
-    return `
-    <div class="card">
-      <div class="card-header">
-        <span class="card-num">#${i+1}</span>
-        ${j.imgUrl
-          ? `<img class="card-thumb" src="${j.imgUrl}" alt="foto do relógio" />`
-          : `<div class="card-thumb-empty"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><line x1="12" y1="7" x2="12" y2="12"/><line x1="12" y1="12" x2="15" y2="14"/></svg></div>`
-        }
-        <div class="card-info">
-          <div class="card-model">${esc(j.model || '—')}</div>
-          <div class="card-client">${esc(j.client || '')}</div>
-        </div>
-      </div>
+  const pending = jobs.filter(j => !(j.steps && j.steps.relogioEnviado));
+  const concluded = jobs.filter(j => j.steps && j.steps.relogioEnviado);
 
-      ${allDone ? `
-        <div class="done-banner">
-          <svg viewBox="0 0 16 16" fill="none" stroke-width="2"><polyline points="3 8 6.5 12 13 4"/></svg>
-          Relógio enviado!
-        </div>
-      ` : ''}
+  let html = '';
 
-      <div class="card-progress">
-        <div class="progress-bar-wrap">
-          <div class="progress-bar-fill" style="width:${pct}%"></div>
-        </div>
-        <div class="progress-label">${doneCount} de ${STEPS.length} etapas</div>
-      </div>
-
-      <div class="steps-list">
-        ${STEPS.map((s, si) => `
-          ${si > 0 ? `<div class="step-connector ${steps[STEPS[si-1].key] ? 'done' : ''}"></div>` : ''}
-          <div class="step-row">
-            <div class="step-icon ${steps[s.key] ? 'done' : ''}">
-              <svg viewBox="0 0 11 11" fill="none" stroke-width="2"><polyline points="1.5 5.5 4 8 9.5 2.5"/></svg>
-            </div>
-            <span class="step-text ${steps[s.key] ? 'done' : ''}">${s.label}</span>
-          </div>
-        `).join('')}
-      </div>
+  if (pending.length > 0) {
+    html += `<div class="section-divider">
+      <span class="section-divider-label active">Em andamento</span>
+      <hr />
+      <span class="section-divider-count active">${pending.length}</span>
     </div>`;
-  }).join('') + '</div>';
+    html += '<div class="list">' + pending.map((j, i) => renderCard(j, i + 1, false)).join('') + '</div>';
+  }
+
+  if (concluded.length > 0) {
+    html += `<div class="section-divider">
+      <span class="section-divider-label done">Concluídos</span>
+      <hr />
+      <span class="section-divider-count done">${concluded.length}</span>
+    </div>`;
+    html += '<div class="list">' + concluded.map((j, i) => renderCard(j, i + 1, true)).join('') + '</div>';
+  }
+
+  wrap.innerHTML = html;
+}
+
+function renderCard(j, num, concluded) {
+  const steps = j.steps || {};
+  const doneCount = STEPS.filter(s => steps[s.key]).length;
+  const pct = Math.round((doneCount / STEPS.length) * 100);
+
+  return `
+  <div class="card${concluded ? ' concluded' : ''}">
+    <div class="card-header">
+      <span class="card-num">#${num}</span>
+      ${j.imgUrl
+        ? `<img class="card-thumb" src="${j.imgUrl}" alt="foto do relógio" />`
+        : `<div class="card-thumb-empty"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><line x1="12" y1="7" x2="12" y2="12"/><line x1="12" y1="12" x2="15" y2="14"/></svg></div>`
+      }
+      <div class="card-info">
+        <div class="card-model">${esc(j.model || '—')}</div>
+        <div class="card-client">${esc(j.client || '')}</div>
+      </div>
+    </div>
+
+    ${concluded ? `
+      <div class="done-banner">
+        <svg viewBox="0 0 16 16" fill="none" stroke-width="2"><polyline points="3 8 6.5 12 13 4"/></svg>
+        Relógio enviado!
+      </div>
+    ` : ''}
+
+    <div class="card-progress">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" style="width:${pct}%"></div>
+      </div>
+      <div class="progress-label">${doneCount} de ${STEPS.length} etapas</div>
+    </div>
+
+    <div class="steps-list">
+      ${STEPS.map((s, si) => `
+        ${si > 0 ? `<div class="step-connector ${steps[STEPS[si-1].key] ? 'done' : ''}"></div>` : ''}
+        <div class="step-row">
+          <div class="step-icon ${steps[s.key] ? 'done' : ''}">
+            <svg viewBox="0 0 11 11" fill="none" stroke-width="2"><polyline points="1.5 5.5 4 8 9.5 2.5"/></svg>
+          </div>
+          <span class="step-text ${steps[s.key] ? 'done' : ''}">${s.label}</span>
+        </div>
+      `).join('')}
+    </div>
+  </div>`;
 }
 
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
