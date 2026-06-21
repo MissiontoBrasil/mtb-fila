@@ -225,7 +225,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, query, orderBy, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA4_BS4q55yFiRKHNH8Q-10EsnvHvAcuvU",
@@ -250,6 +250,18 @@ const STEPS = [
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
+async function getNextOrderNumber() {
+  const counterRef = doc(db, "meta", "counter");
+  const next = await runTransaction(db, async (tx) => {
+    const snap = await tx.get(counterRef);
+    const current = snap.exists() ? (snap.data().value || 0) : 0;
+    const updated = current + 1;
+    tx.set(counterRef, { value: updated }, { merge: true });
+    return updated;
+  });
+  return next;
+}
 
 let jobs = [];
 let editId = null;
@@ -301,7 +313,7 @@ function renderList() {
   wrap.innerHTML = '<div class="list">' + jobs.map((j, i) => `
     <div class="card">
       <div class="card-top">
-        <span class="card-num">#${i+1}</span>
+        <span class="card-num">#${j.orderNumber || (i+1)}</span>
         ${j.imgUrl
           ? `<img class="card-thumb" src="${j.imgUrl}" alt="foto" />`
           : `<div class="card-thumb-placeholder" onclick="addImgCard('${j.id}')" title="Adicionar foto">
@@ -429,13 +441,15 @@ window.saveJob = async function() {
       await updateDoc(doc(db, "jobs", editId), update);
       showToast('Trabalho atualizado ✓');
     } else {
+      const orderNumber = await getNextOrderNumber();
       await addDoc(collection(db, "jobs"), {
         client, model,
+        orderNumber,
         imgUrl: imgUrl || null,
         steps: {},
         createdAt: serverTimestamp()
       });
-      showToast('Trabalho adicionado ✓');
+      showToast('Trabalho adicionado ✓ — Pedido #' + orderNumber);
     }
     closeModal();
   } catch(err) {
