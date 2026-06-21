@@ -50,6 +50,19 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 .stat-val { font-size: 22px; font-weight: 700; color: var(--gold); }
 .stat-label { font-size: 11px; color: var(--text3); margin-top: 2px; letter-spacing: 0.04em; text-transform: uppercase; }
 
+/* SEARCH */
+.search-wrap { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px; margin-bottom: 1.75rem; }
+.search-toggle { display: flex; gap: 6px; margin-bottom: 10px; }
+.search-toggle button { flex: 1; padding: 7px 10px; border-radius: 8px; border: 0.5px solid var(--border); background: transparent; color: var(--text3); font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s; }
+.search-toggle button.active { background: var(--gold-dim); color: var(--gold); border-color: rgba(201,168,76,0.35); }
+.search-input-row { display: flex; gap: 8px; }
+.search-input-row input { flex: 1; padding: 10px 14px; border-radius: var(--radius); border: 0.5px solid var(--border2); background: var(--surface2); color: var(--text); font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.15s; }
+.search-input-row input:focus { border-color: var(--gold); }
+.search-input-row input::placeholder { color: var(--text3); }
+.search-clear { padding: 0 14px; border-radius: var(--radius); border: 0.5px solid var(--border2); background: transparent; color: var(--text3); font-size: 13px; cursor: pointer; transition: color 0.15s, border-color 0.15s; }
+.search-clear:hover { color: var(--text); border-color: var(--border2); }
+.search-no-results { text-align: center; padding: 3rem 1rem; color: var(--text3); font-size: 14px; }
+
 /* CARDS */
 .list { display: flex; flex-direction: column; gap: 14px; }
 
@@ -136,6 +149,18 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <div class="stat"><div class="stat-val" id="stat-total">—</div><div class="stat-label">Na fila</div></div>
     <div class="stat"><div class="stat-val" id="stat-done">—</div><div class="stat-label">Concluídos</div></div>
   </div>
+
+  <div class="search-wrap">
+    <div class="search-toggle">
+      <button id="toggle-name" class="active" onclick="setSearchMode('name')">Buscar por nome</button>
+      <button id="toggle-order" onclick="setSearchMode('order')">Buscar por nº do pedido</button>
+    </div>
+    <div class="search-input-row">
+      <input type="text" id="search-input" placeholder="Digite seu nome..." oninput="onSearchInput()" />
+      <button class="search-clear" id="search-clear-btn" onclick="clearSearch()" style="display:none">Limpar</button>
+    </div>
+  </div>
+
   <div id="list-wrap">
     <div class="loading-wrap"><div class="spinner"></div> Carregando...</div>
   </div>
@@ -171,19 +196,65 @@ const STEPS = [
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+let allJobs = [];
+let searchMode = 'name';
+let searchTerm = '';
+
+window.setSearchMode = function(mode) {
+  searchMode = mode;
+  document.getElementById('toggle-name').classList.toggle('active', mode === 'name');
+  document.getElementById('toggle-order').classList.toggle('active', mode === 'order');
+  const input = document.getElementById('search-input');
+  input.placeholder = mode === 'name' ? 'Digite seu nome...' : 'Digite o número do pedido (ex: 7)...';
+  input.value = '';
+  searchTerm = '';
+  document.getElementById('search-clear-btn').style.display = 'none';
+  renderList(allJobs);
+};
+
+window.onSearchInput = function() {
+  searchTerm = document.getElementById('search-input').value.trim();
+  document.getElementById('search-clear-btn').style.display = searchTerm ? 'block' : 'none';
+  renderList(allJobs);
+};
+
+window.clearSearch = function() {
+  document.getElementById('search-input').value = '';
+  searchTerm = '';
+  document.getElementById('search-clear-btn').style.display = 'none';
+  renderList(allJobs);
+};
+
+function filterJobs(jobs) {
+  if (!searchTerm) return jobs;
+  if (searchMode === 'order') {
+    const num = searchTerm.replace('#', '').trim();
+    return jobs.filter(j => String(j.orderNumber || '') === num);
+  }
+  const term = searchTerm.toLowerCase();
+  return jobs.filter(j => (j.client || '').toLowerCase().includes(term));
+}
+
 const q = query(collection(db, "jobs"), orderBy("createdAt", "asc"));
 onSnapshot(q, snap => {
-  const jobs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  const done = jobs.filter(j => j.steps && j.steps.relogioEnviado);
-  document.getElementById('stat-total').textContent = jobs.length;
+  allJobs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const done = allJobs.filter(j => j.steps && j.steps.relogioEnviado);
+  document.getElementById('stat-total').textContent = allJobs.length;
   document.getElementById('stat-done').textContent = done.length;
-  renderList(jobs);
+  renderList(allJobs);
 });
 
-function renderList(jobs) {
+function renderList(jobsInput) {
   const wrap = document.getElementById('list-wrap');
-  if (jobs.length === 0) {
+  const jobs = filterJobs(jobsInput);
+
+  if (jobsInput.length === 0) {
     wrap.innerHTML = '<div class="empty-state"><div class="icon">⌚</div><p>Nenhum pedido na fila no momento.</p></div>';
+    return;
+  }
+
+  if (searchTerm && jobs.length === 0) {
+    wrap.innerHTML = '<div class="search-no-results">Nenhum pedido encontrado.</div>';
     return;
   }
 
@@ -198,7 +269,7 @@ function renderList(jobs) {
       <hr />
       <span class="section-divider-count active">${pending.length}</span>
     </div>`;
-    html += '<div class="list">' + pending.map((j, i) => renderCard(j, i + 1, false)).join('') + '</div>';
+    html += '<div class="list">' + pending.map(j => renderCard(j, false)).join('') + '</div>';
   }
 
   if (concluded.length > 0) {
@@ -207,13 +278,13 @@ function renderList(jobs) {
       <hr />
       <span class="section-divider-count done">${concluded.length}</span>
     </div>`;
-    html += '<div class="list">' + concluded.map((j, i) => renderCard(j, i + 1, true)).join('') + '</div>';
+    html += '<div class="list">' + concluded.map(j => renderCard(j, true)).join('') + '</div>';
   }
 
   wrap.innerHTML = html;
 }
 
-function renderCard(j, num, concluded) {
+function renderCard(j, concluded) {
   const steps = j.steps || {};
   const doneCount = STEPS.filter(s => steps[s.key]).length;
   const pct = Math.round((doneCount / STEPS.length) * 100);
@@ -221,7 +292,7 @@ function renderCard(j, num, concluded) {
   return `
   <div class="card${concluded ? ' concluded' : ''}">
     <div class="card-header">
-      <span class="card-num">#${num}</span>
+      <span class="card-num">#${j.orderNumber || '—'}</span>
       ${j.imgUrl
         ? `<img class="card-thumb" src="${j.imgUrl}" alt="foto do relógio" />`
         : `<div class="card-thumb-empty"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><line x1="12" y1="7" x2="12" y2="12"/><line x1="12" y1="12" x2="15" y2="14"/></svg></div>`
