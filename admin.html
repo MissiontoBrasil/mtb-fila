@@ -115,7 +115,8 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 .notes-btn { font-size: 12px; padding: 4px 12px; border-radius: 6px; border: 0.5px solid var(--border2); cursor: pointer; }
 .notes-btn.save { background: var(--gold); color: #0e0e0e; font-weight: 700; border-color: var(--gold); }
 .notes-btn.cancel { background: transparent; color: var(--text3); }
-.notes-btn.cancel:hover { color: var(--text); } inset: 0; background: rgba(0,0,0,0.65); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 1rem; backdrop-filter: blur(4px); }
+.notes-btn.cancel:hover { color: var(--text); }
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 1rem; backdrop-filter: blur(4px); }
 .modal { background: var(--surface); border: 0.5px solid var(--border2); border-radius: var(--radius-lg); padding: 1.5rem; width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto; }
 .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
 .modal-header h3 { font-size: 16px; font-weight: 600; }
