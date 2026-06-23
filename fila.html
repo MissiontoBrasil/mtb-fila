@@ -92,7 +92,11 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 .step-connector { width: 1.5px; height: 8px; background: var(--border2); margin-left: 10px; }
 .step-connector.done { background: var(--green); opacity: 0.4; }
 
-/* DONE BADGE */
+/* SUB PECAS */
+.sub-pecas-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; padding-left: 32px; }
+.sub-peca-pill { display: flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 20px; border: 0.5px solid var(--border); color: var(--text3); background: var(--surface2); }
+.sub-peca-pill.done { color: var(--green); background: var(--green-bg); border-color: rgba(76,175,125,0.3); }
+.sub-peca-pill svg { width: 9px; height: 9px; stroke: currentColor; flex-shrink: 0; }
 .done-banner { margin: 8px 16px 0; padding: 8px 14px; background: var(--green-bg); border: 0.5px solid rgba(76,175,125,0.3); border-radius: var(--radius); display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--green); font-weight: 600; }
 .done-banner svg { width: 16px; height: 16px; stroke: var(--green); }
 
@@ -191,6 +195,13 @@ const STEPS = [
   { key: "pecasLocal",     label: "Peças no local de montagem" },
   { key: "relogioMontado", label: "Relógio montado" },
   { key: "relogioEnviado", label: "Relógio enviado" },
+];
+
+const SUB_PECAS = [
+  { key: "subCase",       label: "Case" },
+  { key: "subBezel",      label: "Bezel" },
+  { key: "subPulseira",   label: "Pulseira" },
+  { key: "subMoonswatch", label: "Moonswatch" },
 ];
 
 const app = initializeApp(firebaseConfig);
@@ -318,15 +329,31 @@ function renderCard(j, concluded) {
     </div>
 
     <div class="steps-list">
-      ${STEPS.map((s, si) => `
-        ${si > 0 ? `<div class="step-connector ${steps[STEPS[si-1].key] ? 'done' : ''}"></div>` : ''}
-        <div class="step-row">
-          <div class="step-icon ${steps[s.key] ? 'done' : ''}">
-            <svg viewBox="0 0 11 11" fill="none" stroke-width="2"><polyline points="1.5 5.5 4 8 9.5 2.5"/></svg>
-          </div>
-          <span class="step-text ${steps[s.key] ? 'done' : ''}">${s.label}</span>
-        </div>
-      `).join('')}
+      ${STEPS.map((s, si) => {
+        const isDone = steps[s.key];
+        let html = `
+          ${si > 0 ? `<div class="step-connector ${steps[STEPS[si-1].key] ? 'done' : ''}"></div>` : ''}
+          <div class="step-row">
+            <div class="step-icon ${isDone ? 'done' : ''}">
+              <svg viewBox="0 0 11 11" fill="none" stroke-width="2"><polyline points="1.5 5.5 4 8 9.5 2.5"/></svg>
+            </div>
+            <span class="step-text ${isDone ? 'done' : ''}">${s.label}</span>
+          </div>`;
+        if (s.key === 'pecasLocal') {
+          html += `<div class="sub-pecas-row">
+            ${SUB_PECAS.map(sp => `
+              <span class="sub-peca-pill ${steps[sp.key] ? 'done' : ''}">
+                ${steps[sp.key]
+                  ? `<svg viewBox="0 0 11 11" fill="none" stroke-width="2.5"><polyline points="1.5 5.5 4 8 9.5 2.5"/></svg>`
+                  : `<svg viewBox="0 0 11 11" fill="none" stroke-width="2"><circle cx="5.5" cy="5.5" r="4"/></svg>`
+                }
+                ${sp.label}
+              </span>
+            `).join('')}
+          </div>`;
+        }
+        return html;
+      }).join('')}
     </div>
   </div>`;
 }
