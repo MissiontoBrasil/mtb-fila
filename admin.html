@@ -104,7 +104,18 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 .sub-peca.done { background: var(--green-bg); color: var(--green); border-color: rgba(76,175,125,0.35); }
 .sub-peca-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text3); transition: background 0.15s; flex-shrink: 0; }
 .sub-peca.done .sub-peca-dot { background: var(--green); }
-.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 1rem; backdrop-filter: blur(4px); }
+.notes-area { margin-top: 10px; border-top: 0.5px solid var(--border); padding-top: 10px; }
+.notes-label { font-size: 10px; font-weight: 600; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 5px; display: flex; align-items: center; gap: 5px; }
+.notes-label svg { width: 11px; height: 11px; stroke: var(--text3); }
+.notes-display { font-size: 13px; color: var(--text2); line-height: 1.5; cursor: pointer; padding: 6px 8px; border-radius: 6px; border: 0.5px solid transparent; transition: border-color 0.15s, background 0.15s; white-space: pre-wrap; word-break: break-word; min-height: 32px; }
+.notes-display:hover { border-color: var(--border2); background: var(--surface2); }
+.notes-display.empty { color: var(--text3); font-style: italic; }
+.notes-editor { width: 100%; background: var(--surface2); border: 0.5px solid var(--gold); border-radius: 6px; color: var(--text); font-size: 13px; font-family: inherit; padding: 6px 8px; resize: vertical; min-height: 60px; outline: none; line-height: 1.5; }
+.notes-actions { display: flex; justify-content: flex-end; gap: 6px; margin-top: 6px; }
+.notes-btn { font-size: 12px; padding: 4px 12px; border-radius: 6px; border: 0.5px solid var(--border2); cursor: pointer; }
+.notes-btn.save { background: var(--gold); color: #0e0e0e; font-weight: 700; border-color: var(--gold); }
+.notes-btn.cancel { background: transparent; color: var(--text3); }
+.notes-btn.cancel:hover { color: var(--text); } inset: 0; background: rgba(0,0,0,0.65); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 1rem; backdrop-filter: blur(4px); }
 .modal { background: var(--surface); border: 0.5px solid var(--border2); border-radius: var(--radius-lg); padding: 1.5rem; width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto; }
 .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
 .modal-header h3 { font-size: 16px; font-weight: 600; }
@@ -367,6 +378,20 @@ function renderList() {
           return html;
         }).join('')}
       </div>
+      <div class="notes-area">
+        <div class="notes-label">
+          <svg viewBox="0 0 16 16" fill="none" stroke-width="1.8"><path d="M3 3h10v8H3z"/><line x1="5" y1="6" x2="11" y2="6"/><line x1="5" y1="9" x2="9" y2="9"/></svg>
+          Observações
+        </div>
+        <div class="notes-display ${!j.notes ? 'empty' : ''}" id="notes-display-${j.id}" onclick="editNotes('${j.id}')">${j.notes ? esc(j.notes) : 'Clique para adicionar observações...'}</div>
+        <div id="notes-editor-wrap-${j.id}" style="display:none">
+          <textarea class="notes-editor" id="notes-editor-${j.id}">${j.notes || ''}</textarea>
+          <div class="notes-actions">
+            <button class="notes-btn cancel" onclick="cancelNotes('${j.id}')">Cancelar</button>
+            <button class="notes-btn save" onclick="saveNotes('${j.id}')">Salvar</button>
+          </div>
+        </div>
+      </div>
     </div>
   `).join('') + '</div>';
 }
@@ -379,6 +404,25 @@ window.toggleStep = async function(id, key) {
   const steps = j.steps || {};
   steps[key] = !steps[key];
   await updateDoc(doc(db, "jobs", id), { steps });
+};
+
+window.editNotes = function(id) {
+  document.getElementById('notes-display-' + id).style.display = 'none';
+  document.getElementById('notes-editor-wrap-' + id).style.display = 'block';
+  const ta = document.getElementById('notes-editor-' + id);
+  ta.focus();
+  ta.selectionStart = ta.selectionEnd = ta.value.length;
+};
+
+window.cancelNotes = function(id) {
+  document.getElementById('notes-editor-wrap-' + id).style.display = 'none';
+  document.getElementById('notes-display-' + id).style.display = 'block';
+};
+
+window.saveNotes = async function(id) {
+  const notes = document.getElementById('notes-editor-' + id).value.trim();
+  await updateDoc(doc(db, "jobs", id), { notes: notes || null });
+  showToast('Observações salvas ✓');
 };
 
 window.toggleSubPeca = async function(id, key) {
