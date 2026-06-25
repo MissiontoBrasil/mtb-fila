@@ -264,7 +264,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, query, orderBy, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, query, orderBy, runTransaction, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA4_BS4q55yFiRKHNH8Q-10EsnvHvAcuvU",
@@ -330,8 +330,12 @@ function renderStock() {
 }
 
 async function loadStock() {
-  const snap = await runTransaction(db, async tx => tx.get(doc(db, "meta", "stock")));
-  stockData = snap.exists() ? snap.data() : {};
+  try {
+    const snap = await getDoc(doc(db, "meta", "stock"));
+    stockData = snap.exists() ? snap.data() : {};
+  } catch(e) {
+    stockData = {};
+  }
   renderStock();
 }
 
@@ -340,10 +344,9 @@ window.adjustStock = async function(key, delta) {
   const updated = Math.max(0, current + delta);
   stockData[key] = updated;
   renderStock();
-  await updateDoc(doc(db, "meta", "stock"), { [key]: updated }).catch(async () => {
-    const { setDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+  try {
     await setDoc(doc(db, "meta", "stock"), stockData, { merge: true });
-  });
+  } catch(e) { console.error(e); }
 };
 
 async function deductStock(model) {
@@ -363,11 +366,8 @@ async function deductStock(model) {
   Object.assign(stockData, updates);
   renderStock();
   try {
-    await updateDoc(doc(db, "meta", "stock"), updates);
-  } catch {
-    const { setDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
     await setDoc(doc(db, "meta", "stock"), stockData, { merge: true });
-  }
+  } catch(e) { console.error(e); }
 }
   const counterRef = doc(db, "meta", "counter");
   const next = await runTransaction(db, async (tx) => {
