@@ -204,8 +204,18 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 
   <div class="container">
     <div class="stock-panel" id="stock-panel">
-      <div class="stock-panel-title">📦 Estoque</div>
+      <div class="stock-panel-title">📦 Estoque principal</div>
       <div class="stock-grid" id="stock-grid">
+        <div class="loading-wrap" style="padding:1rem"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <div class="stock-panel" id="custom-stock-panel">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="stock-panel-title">🗂️ Estoque personalizado</div>
+        <button class="add-btn" style="padding:6px 12px;font-size:12px" onclick="openAddCustomItem()">+ Adicionar item</button>
+      </div>
+      <div class="stock-grid" id="custom-stock-grid">
         <div class="loading-wrap" style="padding:1rem"><div class="spinner"></div></div>
       </div>
     </div>
@@ -300,8 +310,9 @@ const db = getFirestore(app);
 // STOCK
 const STOCK_ITEMS = [
   { key: "caixaTransporte", label: "Caixa de transporte", type: "all" },
-  { key: "hasteRep",        label: "Haste REP",           type: "rep" },
-  { key: "hasteGen",        label: "Haste GEN",           type: "gen" },
+  { key: "caixaPapelao",    label: "Caixa de papelão",    type: "all" },
+  { key: "hasteRep",        label: "Steam REP",           type: "rep" },
+  { key: "hasteGen",        label: "Steam GEN",           type: "gen" },
   { key: "adaptadorRep",    label: "Adaptador REP",       type: "rep" },
   { key: "adaptadorGen",    label: "Adaptador GEN",       type: "gen" },
 ];
@@ -338,6 +349,78 @@ async function loadStock() {
   }
   renderStock();
 }
+
+// CUSTOM STOCK
+let customItems = [];
+
+function renderCustomStock() {
+  const grid = document.getElementById('custom-stock-grid');
+  if (customItems.length === 0) {
+    grid.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:4px 0">Nenhum item ainda. Clique em "+ Adicionar item" para começar.</div>';
+    return;
+  }
+  grid.innerHTML = customItems.map((item, i) => {
+    const count = item.qty || 0;
+    const cls = count === 0 ? 'zero' : count <= LOW_THRESHOLD ? 'low' : '';
+    return `
+    <div class="stock-item ${cls}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div class="stock-item-label" style="margin:0">${esc(item.label)}</div>
+        <div style="display:flex;gap:4px">
+          <button class="stock-btn" style="width:20px;height:20px;font-size:11px" onclick="editCustomItem(${i})" title="Renomear">✏️</button>
+          <button class="stock-btn" style="width:20px;height:20px;font-size:11px" onclick="deleteCustomItem(${i})" title="Excluir">🗑</button>
+        </div>
+      </div>
+      <div class="stock-item-controls">
+        <button class="stock-btn" onclick="adjustCustomStock(${i}, -1)">−</button>
+        <span class="stock-count">${count}</span>
+        <button class="stock-btn" onclick="adjustCustomStock(${i}, 1)">+</button>
+      </div>
+      ${count === 0 ? '<div class="stock-warning">⚠️ Sem estoque!</div>' : count <= LOW_THRESHOLD ? '<div class="stock-warning">⚠️ Estoque baixo</div>' : ''}
+    </div>`;
+  }).join('');
+}
+
+async function loadCustomStock() {
+  try {
+    const snap = await getDoc(doc(db, "meta", "customStock"));
+    customItems = snap.exists() ? (snap.data().items || []) : [];
+  } catch(e) { customItems = []; }
+  renderCustomStock();
+}
+
+async function saveCustomStock() {
+  await setDoc(doc(db, "meta", "customStock"), { items: customItems }, { merge: true });
+}
+
+window.openAddCustomItem = function() {
+  const name = prompt('Nome do novo item:');
+  if (!name || !name.trim()) return;
+  customItems.push({ label: name.trim(), qty: 0 });
+  renderCustomStock();
+  saveCustomStock();
+};
+
+window.editCustomItem = function(i) {
+  const name = prompt('Novo nome:', customItems[i].label);
+  if (!name || !name.trim()) return;
+  customItems[i].label = name.trim();
+  renderCustomStock();
+  saveCustomStock();
+};
+
+window.deleteCustomItem = function(i) {
+  if (!confirm('Excluir "' + customItems[i].label + '"?')) return;
+  customItems.splice(i, 1);
+  renderCustomStock();
+  saveCustomStock();
+};
+
+window.adjustCustomStock = async function(i, delta) {
+  customItems[i].qty = Math.max(0, (customItems[i].qty || 0) + delta);
+  renderCustomStock();
+  saveCustomStock();
+};
 
 window.adjustStock = async function(key, delta) {
   const current = stockData[key] || 0;
@@ -411,6 +494,7 @@ function showApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app-screen').style.display = 'block';
   loadStock();
+  loadCustomStock();
   startListener();
 }
 
