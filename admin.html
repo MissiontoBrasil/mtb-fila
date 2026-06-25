@@ -369,6 +369,8 @@ async function deductStock(model) {
     await setDoc(doc(db, "meta", "stock"), stockData, { merge: true });
   } catch(e) { console.error(e); }
 }
+
+async function getNextOrderNumber() {
   const counterRef = doc(db, "meta", "counter");
   const next = await runTransaction(db, async (tx) => {
     const snap = await tx.get(counterRef);
