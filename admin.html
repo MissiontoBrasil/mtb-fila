@@ -438,6 +438,7 @@ async function deductStock(model) {
   if (!rep && !gen) return;
   const updates = {};
   updates['caixaTransporte'] = Math.max(0, (stockData['caixaTransporte'] || 0) - 1);
+  updates['caixaPapelao']    = Math.max(0, (stockData['caixaPapelao'] || 0) - 1);
   if (rep) {
     updates['hasteRep']     = Math.max(0, (stockData['hasteRep'] || 0) - 1);
     updates['adaptadorRep'] = Math.max(0, (stockData['adaptadorRep'] || 0) - 1);
