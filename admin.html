@@ -116,6 +116,22 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 .notes-btn.save { background: var(--gold); color: #0e0e0e; font-weight: 700; border-color: var(--gold); }
 .notes-btn.cancel { background: transparent; color: var(--text3); }
 .notes-btn.cancel:hover { color: var(--text); }
+/* STOCK PANEL */
+.stock-panel { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 1.5rem; }
+.stock-panel-title { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 12px; }
+.stock-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.stock-item { background: var(--surface2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 10px 12px; transition: border-color 0.2s; }
+.stock-item.low { border-color: rgba(224,80,80,0.5); background: rgba(224,80,80,0.05); }
+.stock-item.zero { border-color: var(--red); background: rgba(224,80,80,0.08); }
+.stock-item-label { font-size: 11px; color: var(--text3); margin-bottom: 8px; font-weight: 600; }
+.stock-item.low .stock-item-label, .stock-item.zero .stock-item-label { color: var(--red); }
+.stock-item-controls { display: flex; align-items: center; gap: 8px; }
+.stock-btn { width: 26px; height: 26px; border-radius: 6px; border: 0.5px solid var(--border2); background: transparent; color: var(--text2); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s, color 0.15s; flex-shrink: 0; }
+.stock-btn:hover { background: var(--border); color: var(--text); }
+.stock-count { font-size: 20px; font-weight: 700; color: var(--text); min-width: 28px; text-align: center; }
+.stock-item.low .stock-count { color: #e09050; }
+.stock-item.zero .stock-count { color: var(--red); }
+.stock-warning { font-size: 10px; color: var(--red); margin-top: 4px; font-weight: 600; }
 .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 1rem; backdrop-filter: blur(4px); }
 .modal { background: var(--surface); border: 0.5px solid var(--border2); border-radius: var(--radius-lg); padding: 1.5rem; width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto; }
 .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
@@ -187,6 +203,12 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
   </div>
 
   <div class="container">
+    <div class="stock-panel" id="stock-panel">
+      <div class="stock-panel-title">📦 Estoque</div>
+      <div class="stock-grid" id="stock-grid">
+        <div class="loading-wrap" style="padding:1rem"><div class="spinner"></div></div>
+      </div>
+    </div>
     <div class="section-header">
       <span class="section-title">Fila de trabalhos</span>
       <button class="add-btn" onclick="openModal()">
@@ -275,7 +297,78 @@ const SUB_PECAS = [
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-async function getNextOrderNumber() {
+// STOCK
+const STOCK_ITEMS = [
+  { key: "caixaTransporte", label: "Caixa de transporte", type: "all" },
+  { key: "hasteRep",        label: "Haste REP",           type: "rep" },
+  { key: "hasteGen",        label: "Haste GEN",           type: "gen" },
+  { key: "adaptadorRep",    label: "Adaptador REP",       type: "rep" },
+  { key: "adaptadorGen",    label: "Adaptador GEN",       type: "gen" },
+];
+const LOW_THRESHOLD = 3;
+let stockData = {};
+
+function isRep(model) { return (model || '').toUpperCase().includes('REP'); }
+function isGen(model) { return (model || '').toUpperCase().includes('GEN'); }
+
+function renderStock() {
+  const grid = document.getElementById('stock-grid');
+  grid.innerHTML = STOCK_ITEMS.map(item => {
+    const count = stockData[item.key] || 0;
+    const cls = count === 0 ? 'zero' : count <= LOW_THRESHOLD ? 'low' : '';
+    return `
+    <div class="stock-item ${cls}">
+      <div class="stock-item-label">${item.label}</div>
+      <div class="stock-item-controls">
+        <button class="stock-btn" onclick="adjustStock('${item.key}', -1)">−</button>
+        <span class="stock-count">${count}</span>
+        <button class="stock-btn" onclick="adjustStock('${item.key}', 1)">+</button>
+      </div>
+      ${count === 0 ? '<div class="stock-warning">⚠️ Sem estoque!</div>' : count <= LOW_THRESHOLD ? '<div class="stock-warning">⚠️ Estoque baixo</div>' : ''}
+    </div>`;
+  }).join('');
+}
+
+async function loadStock() {
+  const snap = await runTransaction(db, async tx => tx.get(doc(db, "meta", "stock")));
+  stockData = snap.exists() ? snap.data() : {};
+  renderStock();
+}
+
+window.adjustStock = async function(key, delta) {
+  const current = stockData[key] || 0;
+  const updated = Math.max(0, current + delta);
+  stockData[key] = updated;
+  renderStock();
+  await updateDoc(doc(db, "meta", "stock"), { [key]: updated }).catch(async () => {
+    const { setDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    await setDoc(doc(db, "meta", "stock"), stockData, { merge: true });
+  });
+};
+
+async function deductStock(model) {
+  const rep = isRep(model);
+  const gen = isGen(model);
+  if (!rep && !gen) return;
+  const updates = {};
+  updates['caixaTransporte'] = Math.max(0, (stockData['caixaTransporte'] || 0) - 1);
+  if (rep) {
+    updates['hasteRep']     = Math.max(0, (stockData['hasteRep'] || 0) - 1);
+    updates['adaptadorRep'] = Math.max(0, (stockData['adaptadorRep'] || 0) - 1);
+  }
+  if (gen) {
+    updates['hasteGen']     = Math.max(0, (stockData['hasteGen'] || 0) - 1);
+    updates['adaptadorGen'] = Math.max(0, (stockData['adaptadorGen'] || 0) - 1);
+  }
+  Object.assign(stockData, updates);
+  renderStock();
+  try {
+    await updateDoc(doc(db, "meta", "stock"), updates);
+  } catch {
+    const { setDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    await setDoc(doc(db, "meta", "stock"), stockData, { merge: true });
+  }
+}
   const counterRef = doc(db, "meta", "counter");
   const next = await runTransaction(db, async (tx) => {
     const snap = await tx.get(counterRef);
@@ -315,6 +408,7 @@ window.doLogout = function() {
 function showApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app-screen').style.display = 'block';
+  loadStock();
   startListener();
 }
 
@@ -529,6 +623,7 @@ window.saveJob = async function() {
         steps: {},
         createdAt: serverTimestamp()
       });
+      await deductStock(model);
       showToast('Trabalho adicionado ✓ — Pedido #' + orderNumber);
     }
     closeModal();
