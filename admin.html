@@ -117,6 +117,19 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 .notes-btn.cancel { background: transparent; color: var(--text3); }
 .notes-btn.cancel:hover { color: var(--text); }
 
+/* ADMIN SEARCH */
+.admin-search-wrap { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 12px 14px; margin-bottom: 1.25rem; }
+.search-toggle { display: flex; gap: 6px; margin-bottom: 10px; }
+.search-toggle button { flex: 1; padding: 7px 10px; border-radius: 8px; border: 0.5px solid var(--border); background: transparent; color: var(--text3); font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s; }
+.search-toggle button.active { background: var(--gold-dim); color: var(--gold); border-color: rgba(201,168,76,0.35); }
+.search-input-row { display: flex; gap: 8px; }
+.search-input-row input { flex: 1; padding: 9px 12px; border-radius: var(--radius); border: 0.5px solid var(--border2); background: var(--surface2); color: var(--text); font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.15s; }
+.search-input-row input:focus { border-color: var(--gold); }
+.search-input-row input::placeholder { color: var(--text3); }
+.search-clear { padding: 0 14px; border-radius: var(--radius); border: 0.5px solid var(--border2); background: transparent; color: var(--text3); font-size: 13px; cursor: pointer; transition: color 0.15s; }
+.search-clear:hover { color: var(--text); }
+.search-no-results { text-align: center; padding: 3rem 1rem; color: var(--text3); font-size: 14px; }
+
 /* FINANCIAL SUMMARY */
 .finance-summary { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 1.5rem; }
 .finance-summary-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
@@ -290,6 +303,16 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
         Novo trabalho
       </button>
     </div>
+    <div class="admin-search-wrap">
+      <div class="search-toggle">
+        <button id="atoggle-name" class="active" onclick="setAdminSearch('name')">Por nome</button>
+        <button id="atoggle-order" onclick="setAdminSearch('order')">Por nº pedido</button>
+      </div>
+      <div class="search-input-row">
+        <input type="text" id="admin-search-input" placeholder="Buscar por nome..." oninput="onAdminSearch()" />
+        <button class="search-clear" id="admin-search-clear" onclick="clearAdminSearch()" style="display:none">Limpar</button>
+      </div>
+    </div>
     <div id="list-wrap">
       <div class="loading-wrap"><div class="spinner"></div> Carregando...</div>
     </div>
@@ -425,9 +448,8 @@ function renderCustomStock() {
   }
   grid.innerHTML = customItems.map((item, i) => {
     const count = item.qty || 0;
-    const cls = count === 0 ? 'zero' : count <= LOW_THRESHOLD ? 'low' : '';
     return `
-    <div class="stock-item ${cls}">
+    <div class="stock-item">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
         <div class="stock-item-label" style="margin:0">${esc(item.label)}</div>
         <div style="display:flex;gap:4px">
@@ -440,7 +462,6 @@ function renderCustomStock() {
         <span class="stock-count">${count}</span>
         <button class="stock-btn" onclick="adjustCustomStock(${i}, 1)">+</button>
       </div>
-      ${count === 0 ? '<div class="stock-warning">⚠️ Sem estoque!</div>' : count <= LOW_THRESHOLD ? '<div class="stock-warning">⚠️ Estoque baixo</div>' : ''}
     </div>`;
   }).join('');
 }
@@ -582,11 +603,16 @@ function startListener() {
 
 function renderList() {
   const wrap = document.getElementById('list-wrap');
+  const filtered = filterAdminJobs(jobs);
   if (jobs.length === 0) {
     wrap.innerHTML = '<div class="empty-state"><div class="icon">⌚</div><p>Nenhum trabalho ainda.<br>Clique em "Novo trabalho" para começar.</p></div>';
     return;
   }
-  wrap.innerHTML = '<div class="list">' + jobs.map((j, i) => `
+  if (adminSearchTerm && filtered.length === 0) {
+    wrap.innerHTML = '<div class="search-no-results">Nenhum pedido encontrado.</div>';
+    return;
+  }
+  wrap.innerHTML = '<div class="list">' + filtered.map((j, i) => `
     <div class="card">
       <div class="card-top">
         <span class="card-num">#${j.orderNumber || (i+1)}</span>
@@ -653,6 +679,8 @@ function renderList() {
           <div class="pedido-info">
             <div class="pedido-field"><div class="pedido-field-label">Nº Pedido</div><div class="pedido-field-val">${esc(j.pedido.numero || '')}</div></div>
             <div class="pedido-field"><div class="pedido-field-label">Data</div><div class="pedido-field-val">${esc(j.pedido.data || '')}</div></div>
+            <div class="pedido-field full"><div class="pedido-field-label">Nome</div><div class="pedido-field-val">${esc(j.pedido.nome || '')}</div></div>
+            <div class="pedido-field full"><div class="pedido-field-label">CPF</div><div class="pedido-field-val">${esc(j.pedido.cpf || '')}</div></div>
             <div class="pedido-field"><div class="pedido-field-label">Pagamento</div><div class="pedido-field-val">${esc(j.pedido.pagamento || '')}</div></div>
             <div class="pedido-field"><div class="pedido-field-label">WhatsApp</div><div class="pedido-field-val">${esc(j.pedido.whatsapp || '')}</div></div>
             <div class="pedido-field full"><div class="pedido-field-label">Endereço</div><div class="pedido-field-val">${esc(j.pedido.endereco || '')}</div></div>
@@ -684,11 +712,12 @@ function renderList() {
             <button class="pedido-parse-btn" onclick="parsePedido('${j.id}')">Organizar</button>
           </div>
         `}
+        ${j.pedido ? `<button class="cost-save-btn" style="margin-top:8px;color:var(--red);border-color:rgba(224,80,80,0.3)" onclick="clearPedido('${j.id}')">🗑 Limpar dados do pedido</button>` : ''}
       </div>
 
     </div>
   `).join('') + '</div>';
-  setTimeout(() => jobs.forEach(j => { if (j.pedido) recalc(j.id); }), 50);
+  setTimeout(() => filtered.forEach(j => { if (j.pedido) recalc(j.id); }), 50);
 }
 
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -698,9 +727,28 @@ function isGenModel(m) { return (m||'').toUpperCase().includes('GEN'); }
 
 function parseBRL(str) {
   if (!str) return 0;
+  // Extract the numeric part
   const m = str.match(/[\d.,]+/);
   if (!m) return 0;
-  return parseFloat(m[0].replace(/\./g,'').replace(',','.')) || 0;
+  let s = m[0];
+  // If has both dot and comma: 1.234,56 → Brazilian format
+  if (s.includes('.') && s.includes(',')) {
+    s = s.replace(/\./g,'').replace(',','.');
+  // If only comma: 46,19 → Brazilian decimal
+  } else if (s.includes(',') && !s.includes('.')) {
+    s = s.replace(',','.');
+  // If only dot: could be 46.19 (decimal) or 4.619 (thousand sep)
+  } else if (s.includes('.') && !s.includes(',')) {
+    const parts = s.split('.');
+    // If decimal part has exactly 2 digits, treat as decimal: 46.19
+    if (parts[parts.length-1].length === 2) {
+      // keep as is
+    } else {
+      // treat dot as thousand separator: 4.619 → 4619
+      s = s.replace(/\./g,'');
+    }
+  }
+  return parseFloat(s) || 0;
 }
 
 function formatBRL(val) {
@@ -715,6 +763,48 @@ function formatFreteVal(freteStr) {
 function formatValorPago(valorStr) {
   const v = parseBRL(valorStr);
   return v ? formatBRL(v) : '—';
+}
+
+// ADMIN SEARCH
+let adminSearchMode = 'name';
+let adminSearchTerm = '';
+
+window.setAdminSearch = function(mode) {
+  adminSearchMode = mode;
+  document.getElementById('atoggle-name').classList.toggle('active', mode === 'name');
+  document.getElementById('atoggle-order').classList.toggle('active', mode === 'order');
+  const input = document.getElementById('admin-search-input');
+  input.placeholder = mode === 'name' ? 'Buscar por nome...' : 'Buscar por nº do pedido (ex: 7)...';
+  input.value = '';
+  adminSearchTerm = '';
+  document.getElementById('admin-search-clear').style.display = 'none';
+  renderList();
+};
+
+window.onAdminSearch = function() {
+  adminSearchTerm = document.getElementById('admin-search-input').value.trim();
+  document.getElementById('admin-search-clear').style.display = adminSearchTerm ? 'block' : 'none';
+  renderList();
+};
+
+window.clearAdminSearch = function() {
+  document.getElementById('admin-search-input').value = '';
+  adminSearchTerm = '';
+  document.getElementById('admin-search-clear').style.display = 'none';
+  renderList();
+};
+
+function filterAdminJobs(jobs) {
+  if (!adminSearchTerm) return jobs;
+  if (adminSearchMode === 'order') {
+    const num = adminSearchTerm.replace('#','').trim();
+    return jobs.filter(j => String(j.orderNumber || '') === num);
+  }
+  const term = adminSearchTerm.toLowerCase();
+  return jobs.filter(j =>
+    (j.client || '').toLowerCase().includes(term) ||
+    (j.pedido?.nome || '').toLowerCase().includes(term)
+  );
 }
 
 window.changeMonth = function(delta) {
@@ -756,6 +846,12 @@ function calcTotalCosts(j) {
 }
 
 // PEDIDO PARSE
+window.clearPedido = async function(id) {
+  if (!confirm('Limpar todos os dados do pedido? Os custos também serão removidos.')) return;
+  await updateDoc(doc(db, "jobs", id), { pedido: null, costs: null });
+  showToast('Dados do pedido removidos');
+};
+
 window.parsePedido = async function(id) {
   const raw = document.getElementById('paste-' + id)?.value?.trim();
   if (!raw) return;
