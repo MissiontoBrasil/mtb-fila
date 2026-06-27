@@ -727,28 +727,17 @@ function isGenModel(m) { return (m||'').toUpperCase().includes('GEN'); }
 
 function parseBRL(str) {
   if (!str) return 0;
-  // Extract the numeric part
-  const m = str.match(/[\d.,]+/);
-  if (!m) return 0;
-  let s = m[0];
-  // If has both dot and comma: 1.234,56 → Brazilian format
-  if (s.includes('.') && s.includes(',')) {
-    s = s.replace(/\./g,'').replace(',','.');
-  // If only comma: 46,19 → Brazilian decimal
-  } else if (s.includes(',') && !s.includes('.')) {
-    s = s.replace(',','.');
-  // If only dot: could be 46.19 (decimal) or 4.619 (thousand sep)
-  } else if (s.includes('.') && !s.includes(',')) {
-    const parts = s.split('.');
-    // If decimal part has exactly 2 digits, treat as decimal: 46.19
-    if (parts[parts.length-1].length === 2) {
-      // keep as is
-    } else {
-      // treat dot as thousand separator: 4.619 → 4619
-      s = s.replace(/\./g,'');
-    }
+  // Find all numeric patterns and take the last one (handles "Jadlog .Com — R$ 17.96")
+  const matches = str.match(/[\d]+[.,][\d]{2}/g);
+  if (matches && matches.length > 0) {
+    let s = matches[matches.length - 1];
+    // Handle Brazilian comma decimal: 17,96 → 17.96
+    if (s.includes(',')) s = s.replace(',', '.');
+    return parseFloat(s) || 0;
   }
-  return parseFloat(s) || 0;
+  // Fallback: just grab any number
+  const m = str.match(/[\d]+/);
+  return m ? parseFloat(m[0]) : 0;
 }
 
 function formatBRL(val) {
