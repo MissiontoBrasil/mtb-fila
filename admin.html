@@ -535,6 +535,11 @@ let editId = null;
 let imgData = null;
 let unsubscribe = null;
 
+// MONTH FILTER
+let currentMonth = new Date().getMonth();
+let currentYear = new Date().getFullYear();
+const MONTH_NAMES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
 // LOGIN
 const SESS_KEY = 'mtb_admin_ok';
 window.doLogin = function() {
@@ -711,11 +716,6 @@ function formatValorPago(valorStr) {
   const v = parseBRL(valorStr);
   return v ? formatBRL(v) : '—';
 }
-
-// MONTH FILTER
-let currentMonth = new Date().getMonth();
-let currentYear = new Date().getFullYear();
-const MONTH_NAMES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
 window.changeMonth = function(delta) {
   currentMonth += delta;
