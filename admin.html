@@ -116,7 +116,55 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 .notes-btn.save { background: var(--gold); color: #0e0e0e; font-weight: 700; border-color: var(--gold); }
 .notes-btn.cancel { background: transparent; color: var(--text3); }
 .notes-btn.cancel:hover { color: var(--text); }
-/* STOCK PANEL */
+
+/* FINANCIAL SUMMARY */
+.finance-summary { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 1.5rem; }
+.finance-summary-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+.finance-summary-title { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); }
+.month-selector { display: flex; align-items: center; gap: 6px; }
+.month-selector button { width: 26px; height: 26px; border-radius: 6px; border: 0.5px solid var(--border2); background: transparent; color: var(--text2); cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+.month-selector button:hover { background: var(--surface2); color: var(--text); }
+.month-label { font-size: 13px; font-weight: 600; color: var(--text); min-width: 110px; text-align: center; }
+.finance-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.finance-card { background: var(--surface2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 10px 14px; }
+.finance-card-label { font-size: 11px; color: var(--text3); font-weight: 600; margin-bottom: 4px; }
+.finance-card-val { font-size: 18px; font-weight: 700; color: var(--gold); }
+.finance-card-val.green { color: var(--green); }
+.finance-card-val.red { color: var(--red); }
+
+/* PEDIDO AREA */
+.pedido-area { margin-top: 10px; border-top: 0.5px solid var(--border); padding-top: 10px; }
+.pedido-label { font-size: 10px; font-weight: 700; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+.pedido-paste-wrap { display: flex; gap: 6px; margin-bottom: 10px; }
+.pedido-paste-input { flex: 1; padding: 7px 10px; border-radius: var(--radius); border: 0.5px dashed var(--border2); background: var(--surface2); color: var(--text); font-size: 12px; font-family: inherit; outline: none; }
+.pedido-paste-input:focus { border-color: var(--gold); border-style: solid; }
+.pedido-parse-btn { padding: 7px 14px; border-radius: var(--radius); border: none; background: var(--gold); color: #0e0e0e; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.pedido-info { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+.pedido-field { background: var(--surface2); border-radius: 8px; padding: 7px 10px; }
+.pedido-field-label { font-size: 10px; color: var(--text3); font-weight: 600; margin-bottom: 2px; }
+.pedido-field-val { font-size: 12px; color: var(--text); word-break: break-word; }
+.pedido-field.full { grid-column: 1 / -1; }
+.pedido-config { background: var(--gold-dim); border: 0.5px solid rgba(201,168,76,0.2); border-radius: 8px; padding: 8px 10px; margin-bottom: 10px; font-size: 12px; color: var(--text2); line-height: 1.6; }
+.pedido-config strong { color: var(--gold); font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; display: block; margin-bottom: 4px; }
+
+/* COST CALCULATOR */
+.cost-section { border-top: 0.5px solid var(--border); padding-top: 10px; margin-top: 4px; }
+.cost-title { font-size: 10px; font-weight: 700; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+.cost-rows { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
+.cost-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.cost-row-label { font-size: 12px; color: var(--text2); flex: 1; }
+.cost-row-val { font-size: 12px; color: var(--text3); min-width: 70px; text-align: right; }
+.cost-input { width: 90px; padding: 4px 8px; border-radius: 6px; border: 0.5px solid var(--border2); background: var(--bg); color: var(--text); font-size: 12px; font-family: inherit; outline: none; text-align: right; }
+.cost-input:focus { border-color: var(--gold); }
+.cost-divider { border: none; border-top: 0.5px solid var(--border); margin: 6px 0; }
+.cost-total-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-radius: 8px; background: var(--surface2); margin-bottom: 5px; }
+.cost-total-label { font-size: 12px; font-weight: 600; color: var(--text2); }
+.cost-total-val { font-size: 14px; font-weight: 700; }
+.cost-total-val.gold { color: var(--gold); }
+.cost-total-val.green { color: var(--green); }
+.cost-total-val.red { color: var(--red); }
+.cost-save-btn { width: 100%; padding: 7px; border-radius: var(--radius); border: none; background: var(--surface2); color: var(--text3); font-size: 12px; font-weight: 600; cursor: pointer; margin-top: 6px; border: 0.5px solid var(--border2); transition: background 0.15s, color 0.15s; }
+.cost-save-btn:hover { background: var(--gold); color: #0e0e0e; }
 .stock-panel { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 1.5rem; }
 .stock-panel-title { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 12px; }
 .stock-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
@@ -203,6 +251,22 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
   </div>
 
   <div class="container">
+    <div class="finance-summary">
+      <div class="finance-summary-header">
+        <span class="finance-summary-title">💰 Resumo financeiro</span>
+        <div class="month-selector">
+          <button onclick="changeMonth(-1)">‹</button>
+          <span class="month-label" id="month-label">—</span>
+          <button onclick="changeMonth(1)">›</button>
+        </div>
+      </div>
+      <div class="finance-grid">
+        <div class="finance-card"><div class="finance-card-label">Pedidos no mês</div><div class="finance-card-val" id="fin-count">—</div></div>
+        <div class="finance-card"><div class="finance-card-label">Total recebido</div><div class="finance-card-val" id="fin-total">—</div></div>
+        <div class="finance-card"><div class="finance-card-label">Total de custos</div><div class="finance-card-val red" id="fin-costs">—</div></div>
+        <div class="finance-card"><div class="finance-card-label">Lucro líquido</div><div class="finance-card-val green" id="fin-profit">—</div></div>
+      </div>
+    </div>
     <div class="stock-panel" id="stock-panel">
       <div class="stock-panel-title">📦 Estoque principal</div>
       <div class="stock-grid" id="stock-grid">
@@ -494,6 +558,7 @@ window.doLogout = function() {
 function showApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app-screen').style.display = 'block';
+  document.getElementById('month-label').textContent = MONTH_NAMES[currentMonth] + ' ' + currentYear;
   loadStock();
   loadCustomStock();
   startListener();
@@ -506,6 +571,7 @@ function startListener() {
   unsubscribe = onSnapshot(q, snap => {
     jobs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderList();
+    updateFinanceSummary();
   });
 }
 
@@ -574,11 +640,176 @@ function renderList() {
           </div>
         </div>
       </div>
+
+      <div class="pedido-area">
+        <div class="pedido-label">📋 Dados do pedido</div>
+        ${j.pedido ? `
+          <div class="pedido-config"><strong>⌚ Configuração</strong>${esc(j.pedido.config || '')}</div>
+          <div class="pedido-info">
+            <div class="pedido-field"><div class="pedido-field-label">Nº Pedido</div><div class="pedido-field-val">${esc(j.pedido.numero || '')}</div></div>
+            <div class="pedido-field"><div class="pedido-field-label">Data</div><div class="pedido-field-val">${esc(j.pedido.data || '')}</div></div>
+            <div class="pedido-field"><div class="pedido-field-label">Pagamento</div><div class="pedido-field-val">${esc(j.pedido.pagamento || '')}</div></div>
+            <div class="pedido-field"><div class="pedido-field-label">WhatsApp</div><div class="pedido-field-val">${esc(j.pedido.whatsapp || '')}</div></div>
+            <div class="pedido-field full"><div class="pedido-field-label">Endereço</div><div class="pedido-field-val">${esc(j.pedido.endereco || '')}</div></div>
+            <div class="pedido-field"><div class="pedido-field-label">Frete</div><div class="pedido-field-val">${esc(j.pedido.frete || '')}</div></div>
+            <div class="pedido-field"><div class="pedido-field-label">Moonswatch</div><div class="pedido-field-val">${esc(j.pedido.moonswatch || '')}</div></div>
+            <div class="pedido-field full"><div class="pedido-field-label">Valor pago</div><div class="pedido-field-val" style="color:var(--gold);font-weight:700">${esc(j.pedido.valor || '')}</div></div>
+          </div>
+          <div class="cost-section">
+            <div class="cost-title">🧮 Calculadora de custos</div>
+            <div class="cost-rows">
+              <div class="cost-row"><span class="cost-row-label">Caixa de papelão</span><span class="cost-row-val">R$ 0,58</span></div>
+              <div class="cost-row"><span class="cost-row-label">Caixa de transporte</span><span class="cost-row-val">R$ 10,00</span></div>
+              <div class="cost-row"><span class="cost-row-label">${isRepModel(j.model) ? 'Steam REP' : 'Steam GEN'}</span><span class="cost-row-val">${isRepModel(j.model) ? 'R$ 3,90' : 'R$ 8,50'}</span></div>
+              <div class="cost-row"><span class="cost-row-label">Frete</span><span class="cost-row-val">${formatFreteVal(j.pedido.frete)}</span></div>
+              <hr class="cost-divider"/>
+              <div class="cost-row"><span class="cost-row-label">Case</span><input class="cost-input" id="cost-case-${j.id}" type="number" step="0.01" min="0" placeholder="0,00" value="${j.costs?.case || ''}" oninput="recalc('${j.id}')" /></div>
+              <div class="cost-row"><span class="cost-row-label">Pulseira</span><input class="cost-input" id="cost-pulseira-${j.id}" type="number" step="0.01" min="0" placeholder="0,00" value="${j.costs?.pulseira || ''}" oninput="recalc('${j.id}')" /></div>
+              <div class="cost-row"><span class="cost-row-label">Moonswatch</span><input class="cost-input" id="cost-moonswatch-${j.id}" type="number" step="0.01" min="0" placeholder="0,00" value="${j.costs?.moonswatch || ''}" oninput="recalc('${j.id}')" /></div>
+              <div class="cost-row"><span class="cost-row-label">Extra</span><input class="cost-input" id="cost-extra-${j.id}" type="number" step="0.01" min="0" placeholder="0,00" value="${j.costs?.extra || ''}" oninput="recalc('${j.id}')" /></div>
+            </div>
+            <div class="cost-total-row"><span class="cost-total-label">Total de custos</span><span class="cost-total-val red" id="cost-total-${j.id}">R$ —</span></div>
+            <div class="cost-total-row"><span class="cost-total-label">Valor recebido</span><span class="cost-total-val gold">${formatValorPago(j.pedido.valor)}</span></div>
+            <div class="cost-total-row" style="background:var(--green-bg);border:0.5px solid rgba(76,175,125,0.2)"><span class="cost-total-label">Lucro líquido</span><span class="cost-total-val green" id="cost-profit-${j.id}">R$ —</span></div>
+            <button class="cost-save-btn" onclick="saveCosts('${j.id}')">Salvar custos</button>
+          </div>
+        ` : `
+          <div class="pedido-paste-wrap">
+            <input class="pedido-paste-input" id="paste-${j.id}" placeholder="Cole aqui a linha do Google Sheets..." />
+            <button class="pedido-parse-btn" onclick="parsePedido('${j.id}')">Organizar</button>
+          </div>
+        `}
+      </div>
+
     </div>
   `).join('') + '</div>';
+  setTimeout(() => jobs.forEach(j => { if (j.pedido) recalc(j.id); }), 50);
 }
 
-function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function isRepModel(m) { return (m||'').toUpperCase().includes('REP'); }
+function isGenModel(m) { return (m||'').toUpperCase().includes('GEN'); }
+
+function parseBRL(str) {
+  if (!str) return 0;
+  const m = str.match(/[\d.,]+/);
+  if (!m) return 0;
+  return parseFloat(m[0].replace(/\./g,'').replace(',','.')) || 0;
+}
+
+function formatBRL(val) {
+  return 'R$ ' + val.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+}
+
+function formatFreteVal(freteStr) {
+  const v = parseBRL(freteStr);
+  return v ? formatBRL(v) : '—';
+}
+
+function formatValorPago(valorStr) {
+  const v = parseBRL(valorStr);
+  return v ? formatBRL(v) : '—';
+}
+
+// MONTH FILTER
+let currentMonth = new Date().getMonth();
+let currentYear = new Date().getFullYear();
+const MONTH_NAMES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+window.changeMonth = function(delta) {
+  currentMonth += delta;
+  if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+  if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+  updateFinanceSummary();
+};
+
+function updateFinanceSummary() {
+  document.getElementById('month-label').textContent = MONTH_NAMES[currentMonth] + ' ' + currentYear;
+  const filtered = jobs.filter(j => {
+    if (!j.pedido?.data) return false;
+    const parts = j.pedido.data.split('/');
+    if (parts.length < 3) return false;
+    const d = new Date(parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0]));
+    return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+  });
+  let totalRecebido = 0, totalCustos = 0;
+  filtered.forEach(j => {
+    totalRecebido += parseBRL(j.pedido?.valor);
+    totalCustos += calcTotalCosts(j);
+  });
+  document.getElementById('fin-count').textContent = filtered.length;
+  document.getElementById('fin-total').textContent = formatBRL(totalRecebido);
+  document.getElementById('fin-costs').textContent = formatBRL(totalCustos);
+  const profit = totalRecebido - totalCustos;
+  const profEl = document.getElementById('fin-profit');
+  profEl.textContent = formatBRL(profit);
+  profEl.className = 'finance-card-val ' + (profit >= 0 ? 'green' : 'red');
+}
+
+function calcTotalCosts(j) {
+  const fixo = 0.58 + 10.00 + (isRepModel(j.model) ? 3.90 : 8.50);
+  const frete = parseBRL(j.pedido?.frete);
+  const c = j.costs || {};
+  const variaveis = (parseFloat(c.case)||0) + (parseFloat(c.pulseira)||0) + (parseFloat(c.moonswatch)||0) + (parseFloat(c.extra)||0);
+  return fixo + frete + variaveis;
+}
+
+// PEDIDO PARSE
+window.parsePedido = async function(id) {
+  const raw = document.getElementById('paste-' + id)?.value?.trim();
+  if (!raw) return;
+  const cols = raw.split('\t');
+  // Columns: 0=Numero, 1=Status, 2=Data, 3=Pagamento, 4=Nome, 5=CPF, 6=WhatsApp, 7=Endereço, 8=Frete, 9=Config, 10=Moonswatch, 11=PecasComprar, 12=Valor
+  const pedido = {
+    numero:    cols[0]?.trim() || '',
+    data:      (cols[2]?.trim() || '').split(',')[0],
+    pagamento: cols[3]?.trim() || '',
+    nome:      cols[4]?.trim() || '',
+    cpf:       cols[5]?.trim() || '',
+    whatsapp:  cols[6]?.trim() || '',
+    endereco:  cols[7]?.trim() || '',
+    frete:     cols[8]?.trim() || '',
+    config:    cols[9]?.trim() || '',
+    moonswatch:cols[10]?.trim() || '',
+    valor:     cols[12]?.trim() || '',
+  };
+  await updateDoc(doc(db, "jobs", id), { pedido });
+  showToast('Dados do pedido salvos ✓');
+};
+
+// COSTS
+window.recalc = function(id) {
+  const j = jobs.find(x => x.id === id);
+  if (!j) return;
+  const fixo = 0.58 + 10.00 + (isRepModel(j.model) ? 3.90 : 8.50);
+  const frete = parseBRL(j.pedido?.frete);
+  const c = {
+    case:      parseFloat(document.getElementById('cost-case-'+id)?.value) || 0,
+    pulseira:  parseFloat(document.getElementById('cost-pulseira-'+id)?.value) || 0,
+    moonswatch:parseFloat(document.getElementById('cost-moonswatch-'+id)?.value) || 0,
+    extra:     parseFloat(document.getElementById('cost-extra-'+id)?.value) || 0,
+  };
+  const total = fixo + frete + c.case + c.pulseira + c.moonswatch + c.extra;
+  const recebido = parseBRL(j.pedido?.valor);
+  const profit = recebido - total;
+  const totalEl = document.getElementById('cost-total-'+id);
+  const profitEl = document.getElementById('cost-profit-'+id);
+  if (totalEl) totalEl.textContent = formatBRL(total);
+  if (profitEl) { profitEl.textContent = formatBRL(profit); profitEl.className = 'cost-total-val ' + (profit >= 0 ? 'green' : 'red'); }
+};
+
+window.saveCosts = async function(id) {
+  const costs = {
+    case:       document.getElementById('cost-case-'+id)?.value || '',
+    pulseira:   document.getElementById('cost-pulseira-'+id)?.value || '',
+    moonswatch: document.getElementById('cost-moonswatch-'+id)?.value || '',
+    extra:      document.getElementById('cost-extra-'+id)?.value || '',
+  };
+  await updateDoc(doc(db, "jobs", id), { costs });
+  showToast('Custos salvos ✓');
+  updateFinanceSummary();
+};
 
 window.toggleStep = async function(id, key) {
   const j = jobs.find(x => x.id === id);
